@@ -16,6 +16,7 @@ import net.sinticbolivia.facturacion.client.classes.JsonResponseActividades;
 import net.sinticbolivia.facturacion.client.classes.JsonResponseFactura;
 import net.sinticbolivia.facturacion.client.classes.JsonResponseLogin;
 import net.sinticbolivia.facturacion.client.classes.JsonResponseParametrica;
+import net.sinticbolivia.facturacion.client.classes.JsonResponsePdf;
 import net.sinticbolivia.facturacion.client.classes.JsonResponseProductosServicios;
 import net.sinticbolivia.facturacion.client.classes.JsonResponsePuntosVenta;
 import net.sinticbolivia.facturacion.client.classes.LoginResponseData;
@@ -199,5 +200,25 @@ public class MonoInvoicesClient
 			throw new Exception(jres.getError());
 		
 		return jres.data;
+	}
+	/**
+	 * 
+	 * @param id
+	 * @param medida Tamaño de la impresion oficio|rollo
+	 * @throws Exception
+	 */
+	public String obtenerPdf(Long id, String medida) throws Exception
+	{
+		if( !medida.equals("rollo") )
+			medida = "";
+		String endpoint = this.buildEndpoint(String.format("/invoices/%d/pdf?tpl=", id, medida));
+		if( this.token.isEmpty() )
+			throw new Exception("Token invalido");
+		Request request = this.instanceRequest();
+		Response response = request.get(endpoint);
+		JsonResponsePdf jres = response.getObject(JsonResponsePdf.class);
+		if( jres.getCode() != 200 )
+			throw new Exception(jres.getError());
+		return jres.getPdfBuffer();
 	}
 }

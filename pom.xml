@@ -6,7 +6,7 @@
 
   <groupId>net.sinticbolivia.facturacion.client</groupId>
   <artifactId>monoinvoices-client</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.2</version>
 
   <name>monoinvoices-client</name>
   <url>https://sinticbolivia.net</url>

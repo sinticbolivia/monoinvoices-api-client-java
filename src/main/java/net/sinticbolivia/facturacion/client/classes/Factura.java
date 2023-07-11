@@ -1,16 +1,20 @@
 package net.sinticbolivia.facturacion.client.classes;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(value={ "cash", "authorization", "invoice_limite_date", "currency_code", "sector" })
 public class Factura extends ApiObject
 {
 	public 	Long	invoice_id;
+	public	Long	real_invoice_number;
 	public	Long	user_id;
 	public	Long	store_id;
 	public	Long 	customer_id;
@@ -48,11 +52,10 @@ public class Factura extends ApiObject
 	public	String	leyenda;
 	public	String	siat_url;
 	public	String	actividad_economica;
-	public	Integer	ambiente;
-	//public	HashMap<String, String>	data;
-	public	String	data;
-	public	String	print_url;
-	public	List<FacturaItem>	items;
+	public	Integer					ambiente;
+	public	FacturaData 			data;
+	public	String					print_url;
+	public	List<FacturaItem>		items;
 	public	HashMap<String, String>	meta;
 	
 	public Factura()
@@ -75,4 +78,34 @@ public class Factura extends ApiObject
 		}
 		this.total = this.subtotal - this.discount;
 	}
+	//*
+	@SuppressWarnings("unchecked")
+	@JsonProperty("data")
+	private void unpackNested(Object obj) throws InstantiationException, IllegalAccessException, SecurityException 
+	{
+		if( obj == null || obj.toString().isEmpty() )
+			return;
+		Map<String, Object> objData = ((Map<String, Object>)obj);
+		
+		this.data = new FacturaData();
+		for(String key: objData.keySet())
+		{
+			//System.out.println("NAME: " + key);
+			try
+			{
+				Field field = this.data.getClass().getField(key);
+				if( field == null )
+					continue;
+				if( field.getName() == "nro_factura" )
+					field.set(this.data, Long.parseLong(objData.get(key).toString()));
+				else
+					field.set(this.data, objData.get(key));
+			}
+			catch(NoSuchFieldException e)
+			{
+				System.out.println("PARSE JSON FIELD ERROR:" + e.getMessage());
+			}
+		}
+	}
+	//*/
 }

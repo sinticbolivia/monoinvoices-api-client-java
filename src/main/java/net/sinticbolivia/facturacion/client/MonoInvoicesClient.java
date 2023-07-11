@@ -2,6 +2,7 @@ package net.sinticbolivia.facturacion.client;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -14,6 +15,8 @@ import net.sinticbolivia.facturacion.client.classes.RespuestaListaProductos;
 import net.sinticbolivia.facturacion.client.classes.Factura;
 import net.sinticbolivia.facturacion.client.classes.JsonResponseActividades;
 import net.sinticbolivia.facturacion.client.classes.JsonResponseFactura;
+import net.sinticbolivia.facturacion.client.classes.JsonResponseFacturas;
+import net.sinticbolivia.facturacion.client.classes.JsonResponseGeneric;
 import net.sinticbolivia.facturacion.client.classes.JsonResponseLogin;
 import net.sinticbolivia.facturacion.client.classes.JsonResponseParametrica;
 import net.sinticbolivia.facturacion.client.classes.JsonResponsePdf;
@@ -26,6 +29,8 @@ public class MonoInvoicesClient
 {
 	protected	String baseUrl;
 	protected	String	token;
+	protected	Request lastRequest;
+	protected	Response	lastResponse;
 	
 	public MonoInvoicesClient()
 	{
@@ -42,6 +47,14 @@ public class MonoInvoicesClient
 	protected String buildEndpoint(String path)
 	{
 		return this.baseUrl + "/api" + path;
+	}
+	public Request getLastRequest()
+	{
+		return this.lastRequest;
+	}
+	public Response getLastResponse()
+	{
+		return this.lastResponse;
 	}
 	protected Request instanceRequest() throws Exception
 	{
@@ -220,5 +233,49 @@ public class MonoInvoicesClient
 		if( jres.getCode() != 200 )
 			throw new Exception(jres.getError());
 		return jres.getPdfBuffer();
+	}
+	public List<Factura> listadoFacturas(int page, int limit) throws Exception
+	{
+		String endpoint = this.buildEndpoint(String.format("/invoices/siat/v2/invoices?page=%d&limit=%d", page, limit));
+		if( this.token.isEmpty() )
+			throw new Exception("Token invalido");
+		Request request = this.instanceRequest();
+		Response response = request.get(endpoint);
+		this.lastRequest = request;
+		this.lastResponse = response;
+		JsonResponseFacturas jres = response.getObject(JsonResponseFacturas.class);
+		if( jres.getCode() != 200 )
+			throw new Exception(jres.getError());
+		//List<Factura> items = new ArrayList<Factura>();
+		
+		return jres.data;
+	}
+	public JsonResponseGeneric reenviarFactura(Long id) throws Exception
+	{
+		String endpoint = this.buildEndpoint(String.format("/invoices/siat/v2/invoices/%d/reenviar", id));
+		if( this.token.isEmpty() )
+			throw new Exception("Token invalido");
+		Request request = this.instanceRequest();
+		Response response = request.get(endpoint);
+		JsonResponseGeneric jres = response.getObject(JsonResponseGeneric.class);
+		if( jres.getCode() != 200 )
+			throw new Exception(jres.getError());
+		
+		return jres;
+	}
+	public List<Factura> buscarFactura(String keyword) throws Exception
+	{
+		String endpoint = this.buildEndpoint(String.format("/invoices/siat/v2/invoices/search?keyword=%s", keyword));
+		if( this.token.isEmpty() )
+			throw new Exception("Token invalido");
+		Request request = this.instanceRequest();
+		Response response = request.get(endpoint);
+		//System.out.println(response.getBody());
+		JsonResponseFacturas jres = response.getObject(JsonResponseFacturas.class);
+		
+		if( jres.getCode() != 200 )
+			throw new Exception(jres.getError());
+		
+		return jres.data;
 	}
 }

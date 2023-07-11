@@ -136,4 +136,25 @@ public class AppTest
     	obj.motivoConsulta = "Motivo 123";
     	System.out.println(obj.toXml());
     }
+    @Test
+    public void testObtenerFacturas() throws Exception
+    {
+    	MonoInvoicesClient client = new MonoInvoicesClient();
+    	client.setBaseUrl("https://facturacion.1bytebo.net");
+    	LoginResponseData res = client.login(this.username, this.password);
+		this.token = res.getToken();
+    	if( this.token == null || this.token.isEmpty() )
+    		throw new Exception("ERROR: Token invalido");
+    	List<Factura> items = client.listadoFacturas(1, 10);
+    	for(Factura item: items)
+    	{
+    		System.out.println("ID: " + item.invoice_id.toString());
+    		System.out.println("Cliente: " + item.customer);
+    		if( item.data != null )
+    		{
+    			System.out.println("Excepcion: " + item.data.excepcion.toString());
+    		}
+    	}
+    	//System.out.println(client.getLastResponse().getBody());
+    }
 }
